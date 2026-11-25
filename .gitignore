@@ -1,0 +1,42 @@
+# Maven & Java
+target/
+*.jar
+!**/src/main/**/target/
+*.class
+*.log
+hs_err_pid*
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# LocalStack & Docker volume data
+.localstack/
+.postgres-data/
+build-artifacts/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.DS_Store
+Thumbs.db
+
+# Local notes & interview study guides
+CONTEXTO_PROYECTO.md
+docs/acordeon-entrevista.html
+docs/banco-preguntas-senior.html

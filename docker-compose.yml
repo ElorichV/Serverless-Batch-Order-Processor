@@ -1,0 +1,64 @@
+services:
+  localstack:
+    image: localstack/localstack:3.7.2
+    container_name: orders-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,lambda,apigateway,events,logs,cloudwatch,iam,sts
+      - AWS_DEFAULT_REGION=us-east-1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LAMBDA_EXECUTOR=local
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: orders-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=orders_db
+      - POSTGRES_USER=orders_user
+      - POSTGRES_PASSWORD=orders_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orders_user -d orders_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  order-batch-service:
+    build:
+      context: .
+      dockerfile: order-batch-service/Dockerfile
+    container_name: order-batch-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=orders_db
+      - DB_USER=orders_user
+      - DB_PASSWORD=orders_pass
+      - AWS_REGION=us-east-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - ORDERS_BUCKET_NAME=financial-orders-bucket
+      - ORDERS_CSV_PREFIX=incoming/csv/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

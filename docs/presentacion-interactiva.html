@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serverless &amp; Batch Order Processor | Presentación Interactiva y Laboratorio Cloud</title>
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: #1a2333;
+      --bg-code: #0d131f;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent-aws: #ff9900;
+      --accent-spring: #6db33f;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-danger: #ef4444;
+      --accent-success: #22c55e;
+      --border-color: #263248;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "Cascadia Code", "Fira Code", Consolas, "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header & Slide Navigation */
+    header {
+      background: rgba(17, 24, 39, 0.92);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent-aws), #f97316);
+      color: #0b0f19;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .brand p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .slide-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .tab-btn {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 0.95rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover,
+    .tab-btn:focus-visible {
+      color: var(--text-primary);
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(168, 85, 247, 0.18));
+      color: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    /* Main Slide Container */
+    main {
+      max-width: 1320px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.75rem 1.5rem 3rem;
+      flex: 1;
+    }
+
+    .slide-section {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .slide-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 780px;
+    }
+
+    /* Section 1: Interactive Architecture Explorer */
+    .arch-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .arch-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .arch-map-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    .arch-zone-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 0.65rem;
+      font-weight: 700;
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 560px) {
+      .arch-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .comp-node {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.85rem 0.75rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      color: var(--text-primary);
+    }
+
+    .comp-node:hover,
+    .comp-node:focus-visible {
+      border-color: var(--accent-aws);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .comp-node.selected {
+      border-color: var(--accent-aws);
+      background: rgba(255, 153, 0, 0.12);
+      box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.25);
+    }
+
+    .comp-tag {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      width: fit-content;
+    }
+
+    .tag-aws { background: rgba(255, 153, 0, 0.2); color: var(--accent-aws); }
+    .tag-spring { background: rgba(109, 179, 63, 0.2); color: var(--accent-spring); }
+    .tag-iac { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+    .tag-k8s { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+
+    .comp-node strong {
+      font-size: 0.92rem;
+    }
+
+    .comp-node span {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+    }
+
+    .arch-inspector {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .inspector-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .inspector-header h3 {
+      font-size: 1.35rem;
+      color: var(--accent-aws);
+    }
+
+    .file-pill {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      background: var(--bg-code);
+      color: var(--accent-blue);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .inspector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 680px) {
+      .inspector-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .info-box.failure-box {
+      border-left: 4px solid var(--accent-danger);
+    }
+
+    .info-box.role-box {
+      border-left: 4px solid var(--accent-success);
+    }
+
+    .info-box h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.45rem;
+      color: var(--text-primary);
+    }
+
+    .info-box p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .code-panel {
+      background: var(--bg-code);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-panel-bar {
+      background: #161f30;
+      padding: 0.5rem 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .copy-btn {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    pre {
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    /* Section 2: Step-by-Step Data Flow Simulator */
+    .sim-controls-bar {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .scenario-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .scenario-selector label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    select {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .step-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .btn-primary {
+      background: var(--accent-aws);
+      color: #0b0f19;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pipeline-track {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .pipeline-track {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .pipeline-step-pill {
+      background: var(--bg-secondary);
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.65rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      color: var(--text-secondary);
+    }
+
+    .pipeline-step-pill.done {
+      border-color: var(--accent-success);
+      color: var(--text-primary);
+    }
+
+    .pipeline-step-pill.current {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--text-primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    }
+
+    .pipeline-step-pill .step-num {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      display: block;
+    }
+
+    .pipeline-step-pill strong {
+      font-size: 0.82rem;
+      display: block;
+      margin-top: 0.15rem;
+    }
+
+    .sim-stage-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .sim-stage-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sim-narrative h3 {
+      font-size: 1.3rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.6rem;
+    }
+
+    .sim-narrative p {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      margin-bottom: 1rem;
+    }
+
+    .sim-metrics-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .sim-metrics-list li {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .sim-metrics-list li strong {
+      color: var(--accent-aws);
+    }
+
+    /* Section 3: DIY Interactive Checklist */
+    .progress-banner {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .progress-bar-outer {
+      flex: 1;
+      min-width: 220px;
+      height: 12px;
+      background: var(--bg-code);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-spring), var(--accent-blue));
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+
+    .checklist-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .check-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .check-item.completed {
+      border-color: var(--accent-success);
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .check-item-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      cursor: pointer;
+    }
+
+    .check-item-header input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-top: 0.2rem;
+      accent-color: var(--accent-success);
+      cursor: pointer;
+    }
+
+    .check-title-wrap h3 {
+      font-size: 1.08rem;
+      color: var(--text-primary);
+    }
+
+    .check-title-wrap p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .check-item-body {
+      margin-top: 1rem;
+      padding-left: 2.1rem;
+    }
+
+    /* Section 4: Interview Questions Flashcards */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .qa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1.15rem;
+    }
+
+    @media (max-width: 500px) {
+      .qa-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .qa-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .qa-card:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .qa-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+    }
+
+    .qa-question {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .qa-answer {
+      display: none;
+      background: var(--bg-card);
+      border-left: 3px solid var(--accent-purple);
+      padding: 0.9rem;
+      border-radius: 6px;
+      font-size: 0.87rem;
+      color: var(--text-secondary);
+    }
+
+    .qa-card.open .qa-answer {
+      display: block;
+    }
+
+    .qa-toggle-btn {
+      background: var(--bg-card);
+      color: var(--accent-blue);
+      border: 1px solid var(--border-color);
+      padding: 0.45rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: fit-content;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-badge">JAVA 21 + AWS + SPRING BATCH</span>
+        <div>
+          <h1>Serverless &amp; Batch Order Processor</h1>
+          <p>Arquitectura Híbrida Orientada a Eventos y Procesamiento por Lotes en LocalStack &amp; AWS Free Tier</p>
+        </div>
+      </div>
+
+      <nav class="slide-tabs" aria-label="Secciones de la presentación">
+        <button class="tab-btn active" onclick="switchSlide('arch', this)">1. Arquitectura Interactiva</button>
+        <button class="tab-btn" onclick="switchSlide('sim', this)">2. Simulador de Flujo</button>
+        <button class="tab-btn" onclick="switchSlide('diy', this)">3. Guía "Hazlo tú mismo"</button>
+        <button class="tab-btn" onclick="switchSlide('interview', this)">4. Entrevista Técnica Senior</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================================================================== -->
+    <!-- SLIDE 1: INTERACTIVE ARCHITECTURE EXPLORER                         -->
+    <!-- ================================================================== -->
+    <section id="slide-arch" class="slide-section active" aria-labelledby="arch-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="arch-heading">1. Recorrido Visual Interactivo de la Arquitectura</h2>
+          <p>Haz clic en cualquiera de los 9 componentes del sistema para inspeccionar su responsabilidad arquitectónica, el código real que lo implementa en este repositorio y su comportamiento ante fallos.</p>
+        </div>
+      </div>
+
+      <div class="arch-layout">
+        <div class="arch-map-card">
+          <div class="arch-zone-title">Plano Tiempo Real (Serverless Event-Driven)</div>
+          <div class="arch-grid">
+            <button class="comp-node selected" onclick="selectComponent('apigw', this)">
+              <span class="comp-tag tag-aws">AWS Edge</span>
+              <strong>API Gateway</strong>
+              <span>POST /orders (REST v1)</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('lambda', this)">
+              <span class="comp-tag tag-aws">Compute Java 21</span>
+              <strong>AWS Lambda</strong>
+              <span>2 Funciones + SnapStart</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('s3', this)">
+              <span class="comp-tag tag-aws">Storage</span>
+              <strong>Amazon S3</strong>
+              <span>JSON &amp; CSV Order Lake</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('eventbridge', this)">
+              <span class="comp-tag tag-aws">Event Bus</span>
+              <strong>EventBridge</strong>
+              <span>Regla Object Created</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('cloudwatch', this)">
+              <span class="comp-tag tag-aws">Observability</span>
+              <strong>CloudWatch</strong>
+              <span>Logs JSON + Alarma AML</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('iam', this)">
+              <span class="comp-tag tag-aws">Security</span>
+              <strong>AWS IAM</strong>
+              <span>Mínimo Privilegio (PoLP)</span>
+            </button>
+          </div>
+
+          <div class="arch-zone-title">Plano Liquidación Masiva &amp; Infraestructura (Batch + IaC + K8s)</div>
+          <div class="arch-grid">
+            <button class="comp-node" onclick="selectComponent('springbatch', this)">
+              <span class="comp-tag tag-spring">Spring Boot 3.3</span>
+              <strong>Spring Batch</strong>
+              <span>Chunk Reader/Processor/Writer</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('terraform', this)">
+              <span class="comp-tag tag-iac">IaC Modular</span>
+              <strong>Terraform</strong>
+              <span>LocalStack &amp; Free Tier</span>
+            </button>
+            <button class="comp-node" onclick="selectComponent('ec2eks', this)">
+              <span class="comp-tag tag-k8s">Containers &amp; IaC</span>
+              <strong>EC2 / EKS &amp; K8s</strong>
+              <span>HPA + Guardrail de Costos</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="arch-inspector" id="arch-inspector-panel">
+          <div class="inspector-header">
+            <h3 id="comp-title">Amazon API Gateway (REST API)</h3>
+            <span class="file-pill" id="comp-file">terraform/modules/serverless-core/apigateway.tf</span>
+          </div>
+
+          <div class="inspector-grid">
+            <div class="info-box role-box">
+              <h4>¿Qué hace en este proyecto?</h4>
+              <p id="comp-role"></p>
+            </div>
+            <div class="info-box failure-box">
+              <h4>¿Qué pasa si falla? (Resiliencia)</h4>
+              <p id="comp-failure"></p>
+            </div>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-panel-bar">
+              <span id="comp-code-caption">Fragmento de implementación clave</span>
+              <button class="copy-btn" onclick="copyTextFromElement('comp-code-block', this)">Copiar código</button>
+            </div>
+            <pre><code id="comp-code-block"></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- SLIDE 2: STEP-BY-STEP DATA FLOW SIMULATOR                          -->
+    <!-- ================================================================== -->
+    <section id="slide-sim" class="slide-section" aria-labelledby="sim-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="sim-heading">2. Simulador Paso a Paso del Flujo de Datos</h2>
+          <p>Elige un escenario de orden financiera y avanza paso a paso para observar cómo se transforma el payload desde la petición HTTP en API Gateway hasta el commit transaccional en PostgreSQL.</p>
+        </div>
+      </div>
+
+      <div class="sim-controls-bar">
+        <div class="scenario-selector">
+          <label for="scenario-select">Escenario de Prueba:</label>
+          <select id="scenario-select" onchange="changeScenario()">
+            <option value="standard">Orden Estándar (BUY 25 AAPL @ $192.50 USD - Comisión 0.25%)</option>
+            <option value="whale">Orden Institucional / Whale (BUY 200 MSFT @ $425.00 USD = $85,000 - Alerta AML + Comisión 0.15%)</option>
+            <option value="corrupt">Fila CSV Corrupta (Cantidad Negativa -10 - Demostración de FaultTolerant SkipListener)</option>
+          </select>
+        </div>
+
+        <div class="step-nav-buttons">
+          <button class="btn-secondary" id="prev-step-btn" onclick="moveSimStep(-1)">← Paso anterior</button>
+          <span id="sim-step-counter" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-blue);">Paso 1 de 7</span>
+          <button class="btn-primary" id="next-step-btn" onclick="moveSimStep(1)">Siguiente paso →</button>
+        </div>
+      </div>
+
+      <div class="pipeline-track" id="pipeline-track-container"></div>
+
+      <div class="sim-stage-card">
+        <div class="sim-narrative">
+          <h3 id="sim-stage-title"></h3>
+          <p id="sim-stage-desc"></p>
+          <ul class="sim-metrics-list" id="sim-stage-bullets"></ul>
+        </div>
+
+        <div class="code-panel">
+          <div class="code-panel-bar">
+            <span id="sim-payload-label">Estado del Payload / Registro en este paso</span>
+            <button class="copy-btn" onclick="copyTextFromElement('sim-payload-code', this)">Copiar</button>
+          </div>
+          <pre><code id="sim-payload-code"></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- SLIDE 3: DIY INTERACTIVE CHECKLIST                                 -->
+    <!-- ================================================================== -->
+    <section id="slide-diy" class="slide-section" aria-labelledby="diy-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="diy-heading">3. Guía "Hazlo tú mismo" (Checklist Interactivo)</h2>
+          <p>Sigue estos 6 pasos ordenados para levantar, aprovisionar y probar toda la arquitectura en tu máquina local. Tu progreso se guarda automáticamente en el navegador.</p>
+        </div>
+        <button class="btn-secondary" onclick="resetChecklist()">Reiniciar progreso</button>
+      </div>
+
+      <div class="progress-banner">
+        <strong id="diy-progress-text">0 de 6 pasos completados (0%)</strong>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="diy-progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="checklist-stack" id="diy-checklist-container"></div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- SLIDE 4: TECHNICAL INTERVIEW FLASHCARDS                            -->
+    <!-- ================================================================== -->
+    <section id="slide-interview" class="slide-section" aria-labelledby="interview-heading">
+      <div class="section-header">
+        <div>
+          <h2 id="interview-heading">4. Preguntas de Entrevista Técnica Senior (Java 21 + AWS + Spring Batch)</h2>
+          <p>Haz clic en cada tarjeta para revelar la respuesta modelo de Arquitecto Cloud fundamentada directamente en las decisiones técnicas de este repositorio.</p>
+        </div>
+      </div>
+
+      <div class="qa-grid" id="qa-cards-container"></div>
+    </section>
+  </main>
+
+  <footer>
+    Serverless &amp; Batch Order Processor • Java 21 + AWS Lambda SnapStart + Spring Boot 3.3 / Spring Batch 5 + Terraform + LocalStack • Usa las flechas <strong>← / →</strong> para cambiar de sección
+  </footer>
+
+  <script>
+    // =========================================================================
+    // DATA 1: ARCHITECTURE COMPONENTS
+    // =========================================================================
+    const ARCH_COMPONENTS = {
+      apigw: {
+        title: "Amazon API Gateway (REST API v1)",
+        file: "terraform/modules/serverless-core/apigateway.tf",
+        role: "Actúa como puerta de entrada HTTP (POST /orders). Desacopla a los clientes externos de la implementación interna en Lambda mediante integración AWS_PROXY y propaga encabezados como X-Correlation-Id.",
+        failure: "Si el payload no es JSON válido o supera límites de tamaño, API Gateway o la Lambda rechazan con HTTP 400 sin tocar S3. Si la Lambda tarda más de 15s, devuelve HTTP 504 y registra el RequestId para trazabilidad.",
+        code: `resource "aws_api_gateway_integration" "lambda_proxy_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.orders_api.id
+  resource_id             = aws_api_gateway_resource.orders_resource.id
+  http_method             = aws_api_gateway_method.post_orders.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.order_api_lambda.invoke_arn
+}`
+      },
+      lambda: {
+        title: "AWS Lambda en Java 21 (SnapStart + CRaC)",
+        file: "lambdas/order-api-lambda/src/main/java/com/cloudmentor/orders/api/OrderApiHandler.java",
+        role: "Dos funciones ligeras sin Spring en las Lambdas: order-api-lambda valida con Java 21 Records/Streams/Optional y sube JSON+CSV a S3; order-event-processor-lambda evalúa reglas AML. Usan UrlConnectionHttpClient y CRaC (beforeCheckpoint) para eliminar Cold Starts.",
+        failure: "Si S3 falla en order-api-lambda, captura la excepción, emite un log JSON estructurado con nivel ERROR y correlationId, y retorna HTTP 500 seguro sin filtrar stacktraces internos.",
+        code: `public class OrderApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>, Resource {
+
+    @Override
+    public void beforeCheckpoint(org.crac.Context<? extends Resource> context) throws Exception {
+        // Pre-calienta Jackson y el validador funcional antes del snapshot Firecracker de SnapStart
+        OrderRequest warmup = new OrderRequest("ORD-WARMUP", "CUST-000", "AAPL", "BUY", 10, new BigDecimal("150.00"), "USD");
+        OrderValidationResult.validate(warmup);
+        OBJECT_MAPPER.writeValueAsString(warmup);
+    }
+}`
+      },
+      s3: {
+        title: "Amazon S3 (financial-orders-bucket)",
+        file: "lambdas/order-api-lambda/src/main/java/com/cloudmentor/orders/api/service/S3OrderStorageService.java",
+        role: "Almacena cada orden validada en dos formatos: incoming/json/<fecha>/<id>.json para auditoría en tiempo real vía EventBridge, e incoming/csv/<id>.csv como fuente inmutable para la liquidación nocturna de Spring Batch.",
+        failure: "S3 ofrece durabilidad de 99.999999999% (11 nueves). Si ocurre un error transitorio de red al leer desde Spring Batch, el Step está configurado con .retry(SdkClientException.class) hasta 3 veces antes de abortar.",
+        code: `PutObjectRequest csvPutRequest = PutObjectRequest.builder()
+        .bucket(bucketName)
+        .key("incoming/csv/" + order.orderId() + ".csv")
+        .contentType("text/csv")
+        .metadata(Map.of("correlation-id", correlationId, "order-id", order.orderId()))
+        .build();
+s3Client.putObject(csvPutRequest, RequestBody.fromBytes(csvBytes));`
+      },
+      eventbridge: {
+        title: "Amazon EventBridge (S3 Object Created Rule)",
+        file: "terraform/modules/serverless-core/eventbridge.tf",
+        role: "Escucha eventos nativos 'Object Created' emitidos por el bucket S3 bajo el prefijo incoming/ y dispara asíncronamente a order-event-processor-lambda. Permite añadir futuros consumidores (SNS, SQS, Step Functions) sin tocar el código de la primera Lambda.",
+        failure: "EventBridge reintenta automáticamente la entrega a Lambda durante hasta 24 horas con backoff exponencial si la función destino sufre throttling o errores transitorios.",
+        code: `resource "aws_cloudwatch_event_rule" "s3_order_created_rule" {
+  name = "s3-financial-order-created-rule"
+  event_pattern = jsonencode({
+    source      = ["aws.s3"]
+    detail-type = ["Object Created"]
+    detail = {
+      bucket = { name = [aws_s3_bucket.orders_bucket.id] }
+      object = { key = [{ prefix = "incoming/" }] }
+    }
+  })
+}`
+      },
+      cloudwatch: {
+        title: "Amazon CloudWatch (JSON Logs, Metric Filter & Alarm)",
+        file: "terraform/modules/serverless-core/cloudwatch.tf",
+        role: "Centraliza los logs estructurados en una sola línea JSON de ambas Lambdas. Incluye un Metric Filter que inspecciona { $.eventType = \"ORDER_COMPLIANCE_ALERT\" } y activa una alarma cuando entra una orden >= $50,000 USD.",
+        failure: "Los Log Groups tienen retention_in_days = 14 para evitar costos perpetuos de almacenamiento y cumplir con límites de AWS Free Tier (5 GB).",
+        code: `resource "aws_cloudwatch_log_metric_filter" "high_risk_orders_metric_filter" {
+  name           = "HighRiskOrderComplianceAlerts"
+  pattern        = "{ $.eventType = \\"ORDER_COMPLIANCE_ALERT\\" }"
+  log_group_name = aws_cloudwatch_log_group.order_event_processor_logs.name
+
+  metric_transformation {
+    name      = "HighValueOrderAlertCount"
+    namespace = "FinancialOrderProcessor/Compliance"
+    value     = "1"
+  }
+}`
+      },
+      iam: {
+        title: "AWS IAM (Principio de Mínimo Privilegio - PoLP)",
+        file: "terraform/modules/serverless-core/iam.tf",
+        role: "Cada Lambda tiene su propio IAM Role dedicado: order-api-lambda SOLO puede hacer s3:PutObject en incoming/*; order-event-processor-lambda SOLO puede hacer s3:GetObject y s3:ListBucket.",
+        failure: "Si una credencial de la Lambda de lectura fuera comprometida, un atacante no podría sobrescribir ni borrar órdenes existentes en S3 (AccessDenied), conteniendo el radio de explosión.",
+        code: `statement {
+  sid       = "AllowS3PutOrderObjectsOnly"
+  effect    = "Allow"
+  actions   = ["s3:PutObject", "s3:PutObjectTagging"]
+  resources = ["\${aws_s3_bucket.orders_bucket.arn}/incoming/*"]
+}`
+      },
+      springbatch: {
+        title: "Spring Boot 3.3 + Spring Batch 5 (Chunk Processing)",
+        file: "order-batch-service/src/main/java/com/cloudmentor/orders/batch/config/OrderBatchJobConfig.java",
+        role: "Procesa lotes de órdenes CSV en chunks transaccionales de 50 registros: S3OrderCsvItemReader lee de S3, FinancialOrderItemProcessor calcula comisión (0.25% o 0.15%) + 16% IVA, y PostgresOrderItemWriter hace upsert en PostgreSQL.",
+        failure: "Usa FaultTolerantStep: si una fila CSV tiene datos corruptos (InvalidOrderRecordException), OrderSkipListener la audita en JSON y el chunk continúa sin abortar las demás órdenes. Incluye @RestControllerAdvice con ProblemDetail (RFC 7807).",
+        code: `return new StepBuilder("settleOrdersChunkStep", jobRepository)
+        .<OrderCsvRow, ProcessedOrderEntity>chunk(chunkSize, transactionManager)
+        .reader(itemReader)
+        .processor(itemProcessor)
+        .writer(itemWriter)
+        .faultTolerant()
+        .skipLimit(100).skip(InvalidOrderRecordException.class)
+        .retryLimit(3).retry(SdkClientException.class)
+        .listener(skipListener)
+        .build();`
+      },
+      terraform: {
+        title: "Terraform Modular (Dual-Target: LocalStack & AWS)",
+        file: "terraform/providers.tf",
+        role: "Permite desplegar exactamente el mismo código HCL en LocalStack (use_localstack = true con s3_use_path_style y endpoints locales en :4566) o en una cuenta real de AWS Free Tier (use_localstack = false).",
+        failure: "Protege tu bolsillo mediante la variable enable_paid_resources = false (por defecto), que desactiva el módulo /terraform/aws-only (EC2 y EKS) con count = 0.",
+        code: `module "aws_only_compute" {
+  source = "./aws-only"
+  count  = var.enable_paid_resources ? 1 : 0
+
+  environment = var.environment
+  aws_region  = var.aws_region
+}`
+      },
+      ec2eks: {
+        title: "Referencia EC2 / EKS + Manifiestos Kubernetes (/k8s)",
+        file: "k8s/hpa.yaml",
+        role: "Incluye la definición Terraform lista para terraform plan de una instancia EC2 (con IMDSv2 obligatorio y Security Group cerrado) y un clúster EKS, además de manifiestos Kubernetes (Deployment no-root, Service y HorizontalPodAutoscaler).",
+        failure: "En Kubernetes, los probes liveness/readiness sobre /actuator/health reinician contenedores bloqueados y el HPA escala de 2 a 6 réplicas si la CPU supera el 70%.",
+        code: `spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-batch-service
+  minReplicas: 2
+  maxReplicas: 6`
+      }
+    };
+
+    // =========================================================================
+    // DATA 2: STEP-BY-STEP SIMULATOR
+    // =========================================================================
+    const SIM_STAGES = [
+      {
+        shortTitle: "POST /orders",
+        title: "Paso 1: Cliente envía orden a Amazon API Gateway",
+        desc: "El cliente financiero envía una petición HTTP POST /orders con el encabezado X-Correlation-Id. API Gateway recibe la solicitud y la transforma en un evento APIGatewayProxyRequestEvent.",
+        bullets: [
+          "<strong>Protocolo:</strong> REST API Gateway (Integración AWS_PROXY)",
+          "<strong>Trazabilidad:</strong> Se adjunta X-Correlation-Id para seguir la orden extremo a extremo"
+        ],
+        payloads: {
+          standard: `POST /restapis/<api-id>/v1/_user_request_/orders HTTP/1.1
+Host: localhost:4566
+Content-Type: application/json
+X-Correlation-Id: corr-std-101
+
+{
+  "orderId": "ORD-2026-0001",
+  "customerId": "CUST-101",
+  "ticker": "AAPL",
+  "side": "BUY",
+  "quantity": 25,
+  "unitPrice": 192.50,
+  "currency": "USD"
+}`,
+          whale: `POST /restapis/<api-id>/v1/_user_request_/orders HTTP/1.1
+Host: localhost:4566
+Content-Type: application/json
+X-Correlation-Id: corr-whale-999
+
+{
+  "orderId": "ORD-2026-WHALE",
+  "customerId": "CUST-INST-01",
+  "ticker": "MSFT",
+  "side": "BUY",
+  "quantity": 200,
+  "unitPrice": 425.00,
+  "currency": "USD"
+}`,
+          corrupt: `Archivo CSV subido a S3: sample-data/orders-batch-sample.csv (Línea 7)
+-------------------------------------------------------------------------
+orderId,customerId,ticker,side,quantity,unitPrice,currency
+ORD-2026-0006,CUST-888,INVALID_ROW,BUY,-10,0.00,USD`
+        }
+      },
+      {
+        shortTitle: "order-api-lambda",
+        title: "Paso 2: Validación Funcional en order-api-lambda (Java 21)",
+        desc: "La primera Lambda deserializa el JSON en un Java 21 Record inmutable (OrderRequest) y ejecuta OrderValidationResult.validate() usando Streams y Optional sin reflexión pesada.",
+        bullets: [
+          "<strong>Cold Start Optimization:</strong> CRaC beforeCheckpoint() pre-calienta Jackson y el validador",
+          "<strong>Cálculo Notional:</strong> Calcula notionalAmount = quantity * unitPrice con BigDecimal"
+        ],
+        payloads: {
+          standard: `// OrderValidationResult (Java 21 Record)
+OrderValidationResult[
+  valid = true,
+  errors = [],
+  normalizedOrder = OrderRequest[
+    orderId="ORD-2026-0001", customerId="CUST-101", ticker="AAPL",
+    side="BUY", quantity=25, unitPrice=192.50, currency="USD"
+  ],
+  notionalAmount = 4812.50
+]`,
+          whale: `// OrderValidationResult (Java 21 Record)
+OrderValidationResult[
+  valid = true,
+  errors = [],
+  normalizedOrder = OrderRequest[
+    orderId="ORD-2026-WHALE", customerId="CUST-INST-01", ticker="MSFT",
+    side="BUY", quantity=200, unitPrice=425.00, currency="USD"
+  ],
+  notionalAmount = 85000.00
+]`,
+          corrupt: `// Si esta orden se enviara por POST /orders, order-api-lambda la rechaza inmediatamente:
+HTTP/1.1 400 Bad Request
+{
+  "status": "VALIDATION_ERROR",
+  "errors": [
+    "quantity must be between 1 and 100000",
+    "unitPrice must be greater than 0.00"
+  ]
+}
+// (En el escenario CSV masivo, veremos cómo Spring Batch la salta en el Paso 6)`
+        }
+      },
+      {
+        shortTitle: "Amazon S3",
+        title: "Paso 3: Persistencia Dual (JSON + CSV) en Amazon S3",
+        desc: "S3OrderStorageService guarda el artefacto JSON particionado por fecha y el archivo CSV listo para Spring Batch en financial-orders-bucket usando UrlConnectionHttpClient.",
+        bullets: [
+          "<strong>Clave JSON:</strong> incoming/json/2026-11-24/<orderId>.json",
+          "<strong>Clave CSV:</strong> incoming/csv/<orderId>.csv"
+        ],
+        payloads: {
+          standard: `s3://financial-orders-bucket/incoming/csv/ORD-2026-0001.csv
+-----------------------------------------------------------
+orderId,customerId,ticker,side,quantity,unitPrice,currency
+ORD-2026-0001,CUST-101,AAPL,BUY,25,192.50,USD`,
+          whale: `s3://financial-orders-bucket/incoming/csv/ORD-2026-WHALE.csv
+------------------------------------------------------------
+orderId,customerId,ticker,side,quantity,unitPrice,currency
+ORD-2026-WHALE,CUST-INST-01,MSFT,BUY,200,425.00,USD`,
+          corrupt: `s3://financial-orders-bucket/incoming/csv/orders-batch-sample.csv
+-----------------------------------------------------------------
+orderId,customerId,ticker,side,quantity,unitPrice,currency
+ORD-2026-0001,CUST-101,AAPL,BUY,25,192.50,USD
+ORD-2026-0006,CUST-888,INVALID_ROW,BUY,-10,0.00,USD`
+        }
+      },
+      {
+        shortTitle: "EventBridge",
+        title: "Paso 4: Amazon EventBridge detecta Object Created en S3",
+        desc: "Gracias a aws_s3_bucket_notification (eventbridge = true), S3 publica automáticamente el evento en EventBridge. La regla filtra el prefijo incoming/ e invoca a la segunda Lambda.",
+        bullets: [
+          "<strong>Desacoplamiento:</strong> order-api-lambda no conoce ni llama directamente a la segunda Lambda",
+          "<strong>Filtro de Regla:</strong> source = ['aws.s3'], detail-type = ['Object Created']"
+        ],
+        payloads: {
+          standard: `{
+  "version": "0",
+  "id": "eb-event-0001",
+  "detail-type": "Object Created",
+  "source": "aws.s3",
+  "detail": {
+    "bucket": { "name": "financial-orders-bucket" },
+    "object": { "key": "incoming/json/2026-11-24/ORD-2026-0001.json", "size": 245 }
+  }
+}`,
+          whale: `{
+  "version": "0",
+  "id": "eb-event-9999",
+  "detail-type": "Object Created",
+  "source": "aws.s3",
+  "detail": {
+    "bucket": { "name": "financial-orders-bucket" },
+    "object": { "key": "incoming/json/2026-11-24/ORD-2026-WHALE.json", "size": 256 }
+  }
+}`,
+          corrupt: `{
+  "version": "0",
+  "id": "eb-event-sample",
+  "detail-type": "Object Created",
+  "source": "aws.s3",
+  "detail": {
+    "bucket": { "name": "financial-orders-bucket" },
+    "object": { "key": "incoming/csv/orders-batch-sample.csv", "size": 462 }
+  }
+}`
+        }
+      },
+      {
+        shortTitle: "Processor Lambda",
+        title: "Paso 5: Reglas AML y Logs JSON en CloudWatch",
+        desc: "order-event-processor-lambda descarga el objeto de S3, ejecuta OrderBusinessRuleEngine (conversión FX, umbral AML >= $50,000 USD) y escribe logs JSON indexables por CloudWatch Metric Filters.",
+        bullets: [
+          "<strong>Log Group:</strong> /aws/lambda/order-event-processor-lambda",
+          "<strong>Metric Filter:</strong> { $.eventType = \"ORDER_COMPLIANCE_ALERT\" }"
+        ],
+        payloads: {
+          standard: `{
+  "timestamp": "2026-11-24T19:00:02.114Z",
+  "level": "INFO",
+  "service": "order-event-processor-lambda",
+  "eventType": "ORDER_EVENT_VALIDATED",
+  "correlationId": "corr-std-101",
+  "message": "Order passed real-time EventBridge validation and is queued for Spring Batch settlement",
+  "metadata": {
+    "orderId": "ORD-2026-0001",
+    "notionalAmountUsd": 4812.50,
+    "riskTier": "LOW",
+    "approvedForNightlyBatch": true,
+    "requiresComplianceAlert": false
+  }
+}`,
+          whale: `{
+  "timestamp": "2026-11-24T19:00:05.842Z",
+  "level": "WARN",
+  "service": "order-event-processor-lambda",
+  "eventType": "ORDER_COMPLIANCE_ALERT",
+  "correlationId": "corr-whale-999",
+  "message": "High-value or flagged financial order detected by business rules",
+  "metadata": {
+    "orderId": "ORD-2026-WHALE",
+    "notionalAmountUsd": 85000.00,
+    "riskTier": "HIGH_AML_REVIEW",
+    "requiresComplianceAlert": true,
+    "ruleFindings": ["AML_THRESHOLD_EXCEEDED: Notional USD >= 50,000 requires compliance audit log"]
+  }
+}`,
+          corrupt: `{
+  "timestamp": "2026-11-24T19:00:09.102Z",
+  "level": "WARN",
+  "service": "order-event-processor-lambda",
+  "eventType": "ORDER_COMPLIANCE_ALERT",
+  "metadata": {
+    "orderId": "ORD-2026-0006",
+    "riskTier": "REJECTED",
+    "ruleFindings": ["INVALID_FINANCIAL_VALUES: Quantity and unitPrice must be strictly positive"]
+  }
+}`
+        }
+      },
+      {
+        shortTitle: "Spring Batch",
+        title: "Paso 6: Procesamiento Chunk en Spring Batch (Reader -> Processor)",
+        desc: "Al ejecutarse el job ( a las 02:00 AM o vía POST /api/v1/batch/jobs/orders), S3OrderCsvItemReader lee los CSVs de S3 y FinancialOrderItemProcessor calcula comisión por tramo + 16% IVA.",
+        bullets: [
+          "<strong>Comisión Estándar (< $10k):</strong> 0.25% | <strong>Institucional (>= $10k):</strong> 0.15%",
+          "<strong>Tolerancia a Fallos:</strong> .faultTolerant().skipLimit(100).skip(InvalidOrderRecordException.class)"
+        ],
+        payloads: {
+          standard: `// FinancialOrderItemProcessor calculation:
+Gross Amount          = 25 * 192.50      = 4812.5000 USD (< 10,000 -> Tasa 0.25%)
+Commission Fee (0.25%)= 4812.50 * 0.0025 =   12.0313 USD
+Tax IVA (16% s/com)   = 12.0313 * 0.16   =    1.9250 USD
+Net Settlement (BUY)  = 4812.50 + 12.0313 + 1.9250 = 4826.4563 USD
+Status                = SETTLED`,
+          whale: `// FinancialOrderItemProcessor calculation:
+Gross Amount          = 200 * 425.00      = 85000.0000 USD (>= 10,000 -> Tasa Institucional 0.15%)
+Commission Fee (0.15%)= 85000.00 * 0.0015 =   127.5000 USD
+Tax IVA (16% s/com)   = 127.5000 * 0.16   =    20.4000 USD
+Net Settlement (BUY)  = 85000.00 + 127.50 + 20.40 = 85147.9000 USD
+Status                = SETTLED_HIGH_VALUE`,
+          corrupt: `// FinancialOrderItemProcessor lanza InvalidOrderRecordException:
+// OrderSkipListener intercepta la fila sin abortar el chunk de 50 órdenes:
+{
+  "level": "WARN",
+  "service": "order-batch-service",
+  "logger": "c.c.o.batch.batch.OrderSkipListener",
+  "message": "SKIP_IN_PROCESS orderId=ORD-2026-0006 s3Key=incoming/csv/orders-batch-sample.csv line=7 reason=Invalid ticker symbol: INVALID_ROW"
+}`
+        }
+      },
+      {
+        shortTitle: "PostgreSQL",
+        title: "Paso 7: Upsert Transaccional en PostgreSQL 16",
+        desc: "PostgresOrderItemWriter guarda el chunk en la tabla processed_orders (con llave primaria BIGSERIAL, TIMESTAMPTZ e índices B-Tree). El endpoint GET /api/v1/batch/orders expone los resultados como ProcessedOrderDto.",
+        bullets: [
+          "<strong>Idempotencia:</strong> Si se reprocesa el mismo orderId, actualiza el registro sin duplicar filas",
+          "<strong>Respuesta del Job:</strong> Devuelve readCount, writeCount y skipCount"
+        ],
+        payloads: {
+          standard: `SELECT order_id, ticker, gross_amount, commission_fee, tax_amount, net_settlement_amount, status
+FROM processed_orders WHERE order_id = 'ORD-2026-0001';
+
+order_id      | ticker | gross_amount | commission_fee | tax_amount | net_settlement_amount | status
+--------------+--------+--------------+----------------+------------+-----------------------+--------
+ORD-2026-0001 | AAPL   |    4812.5000 |        12.0313 |     1.9250 |             4826.4563 | SETTLED`,
+          whale: `SELECT order_id, ticker, gross_amount, commission_fee, tax_amount, net_settlement_amount, status
+FROM processed_orders WHERE order_id = 'ORD-2026-WHALE';
+
+order_id       | ticker | gross_amount | commission_fee | tax_amount | net_settlement_amount | status
+---------------+--------+--------------+----------------+------------+-----------------------+-------------------
+ORD-2026-WHALE | MSFT   |   85000.0000 |       127.5000 |    20.4000 |            85147.9000 | SETTLED_HIGH_VALUE`,
+          corrupt: `// Respuesta de POST /api/v1/batch/jobs/orders tras procesar sample-data/orders-batch-sample.csv:
+{
+  "jobExecutionId": 1,
+  "jobName": "financialOrderSettlementJob",
+  "status": "COMPLETED",
+  "exitCode": "COMPLETED",
+  "s3Bucket": "financial-orders-bucket",
+  "s3Prefix": "incoming/csv/",
+  "readCount": 8,
+  "writeCount": 7,
+  "skipCount": 1
+}`
+        }
+      }
+    ];
+
+    // =========================================================================
+    // DATA 3: DIY CHECKLIST STEPS
+    // =========================================================================
+    const DIY_STEPS = [
+      {
+        id: "diy-1",
+        title: "Paso 1: Compilar y empaquetar los 3 módulos Java 21 con Maven",
+        why: "Decisión técnica: Las 2 Lambdas usan maven-shade-plugin con ServicesResourceTransformer y UrlConnectionHttpClient (excluyendo Netty) para reducir el JAR en ~15 MB y acelerar el arranque en frío.",
+        cmd: "mvn -B clean package"
+      },
+      {
+        id: "diy-2",
+        title: "Paso 2: Levantar LocalStack, PostgreSQL 16 y el microservicio Spring Batch",
+        why: "Decisión técnica: El Dockerfile multi-stage extrae las capas del JAR con Spring Boot layertools y corre con un usuario sin privilegios (springuser) sobre Eclipse Temurin 21 JRE Alpine.",
+        cmd: "docker compose up -d --build"
+      },
+      {
+        id: "diy-3",
+        title: "Paso 3: Aprovisionar IAM, S3, Lambdas, API Gateway, EventBridge y CloudWatch con Terraform",
+        why: "Decisión técnica: Terraform apunta a http://localhost:4566 (use_localstack=true) y mantiene enable_paid_resources=false para no crear EC2 ni EKS en cuentas reales.",
+        cmd: "cd terraform && terraform init && terraform apply -auto-approve && cd .."
+      },
+      {
+        id: "diy-4",
+        title: "Paso 4: Enviar una orden financiera por API Gateway (POST /orders)",
+        why: "Decisión técnica: Verifica el flujo síncrono API Gateway -> order-api-lambda -> S3 y el disparo asíncrono S3 -> EventBridge -> order-event-processor-lambda -> CloudWatch.",
+        cmd: `API_URL=$(cd terraform && terraform output -raw api_gateway_orders_url)
+curl -i -X POST "$API_URL" -H "Content-Type: application/json" -d '{"orderId":"ORD-2026-9001","customerId":"CUST-700","ticker":"NVDA","side":"BUY","quantity":50,"unitPrice":128.40,"currency":"USD"}'`
+      },
+      {
+        id: "diy-5",
+        title: "Paso 5: Subir el lote CSV de muestra y disparar el Job de Spring Batch",
+        why: "Decisión técnica: El archivo orders-batch-sample.csv incluye 7 órdenes válidas y 1 fila corrupta (ORD-2026-0006 con cantidad -10) para comprobar que el FaultTolerantStep salta la fila mala y liquida las 7 válidas.",
+        cmd: `aws --endpoint-url=http://localhost:4566 s3 cp sample-data/orders-batch-sample.csv s3://financial-orders-bucket/incoming/csv/orders-batch-sample.csv
+curl -s -X POST http://localhost:8080/api/v1/batch/jobs/orders -H "Content-Type: application/json" -d '{"s3Prefix":"incoming/csv/","triggeredBy":"DIY_LAB"}'`
+      },
+      {
+        id: "diy-6",
+        title: "Paso 6: Consultar las órdenes liquidadas en PostgreSQL y auditar CloudWatch Logs",
+        why: "Decisión técnica: El endpoint GET /api/v1/batch/orders usa @Transactional(readOnly = true) y proyecta las entidades JPA hacia ProcessedOrderDto (Java 21 Record).",
+        cmd: `curl -s http://localhost:8080/api/v1/batch/orders
+aws --endpoint-url=http://localhost:4566 logs tail /aws/lambda/order-event-processor-lambda`
+      }
+    ];
+
+    // =========================================================================
+    // DATA 4: INTERVIEW FLASHCARDS
+    // =========================================================================
+    const INTERVIEW_QUESTIONS = [
+      {
+        tag: "AWS Lambda & Java 21",
+        q: "1. ¿Cómo mitigaste el problema del Cold Start en las funciones AWS Lambda escritas en Java 21?",
+        a: "Aplicamos cuatro técnicas combinadas en el código: (1) No usamos Spring Boot dentro de las Lambdas, sino Java 21 puro con Records y validación funcional mediante Streams/Optional para evitar escaneo de classpath por reflexión. (2) Reemplazamos los clientes HTTP pesados (Netty/Apache) del AWS SDK v2 por UrlConnectionHttpClient en el pom.xml. (3) Habilitamos AWS Lambda SnapStart en Terraform (apply_on = 'PublishedVersions') e implementamos la interfaz org.crac.Resource (beforeCheckpoint) para pre-calentar Jackson y el motor de validación antes de que Firecracker tome el snapshot de memoria. (4) Configuramos JAVA_TOOL_OPTIONS='-XX:+TieredCompilation -XX:TieredStopAtLevel=1'."
+      },
+      {
+        tag: "EventBridge vs S3 Notifications",
+        q: "2. ¿Por qué usaste Amazon EventBridge para disparar order-event-processor-lambda en lugar de una notificación directa S3 -> Lambda?",
+        a: "Con las notificaciones directas de S3, un mismo prefijo no puede enrutar fácilmente el mismo evento a múltiples destinos sin acoplar SNS/SQS intermedios. Al activar eventbridge = true en aws_s3_bucket_notification, S3 publica todos los eventos al bus de EventBridge, donde podemos filtrar declarativamente por atributos JSON (prefijo incoming/, tamaño, metadatos) y agregar hasta 5 destinos independientes por regla (por ejemplo, una Lambda de riesgo AML, una cola SQS de auditoría y un archivo Firehose) con reintentos automáticos durante 24h."
+      },
+      {
+        tag: "Spring Batch Resiliencia",
+        q: "3. ¿Qué ocurre en tu Job de Spring Batch si un archivo CSV de 10,000 órdenes trae 3 filas corruptas a mitad del lote?",
+        a: "El Step settleOrdersChunkStep está configurado con procesamiento orientado a chunks (chunkSize = 50) y tolerancia a fallos (.faultTolerant().skipLimit(100).skip(InvalidOrderRecordException.class)). Cuando FinancialOrderItemProcessor detecta una fila inválida (por ejemplo, cantidad negativa o ticker inválido), lanza InvalidOrderRecordException. Spring Batch hace rollback únicamente de esa fila dentro del buffer del chunk, invoca a OrderSkipListener.onSkipInProcess() para dejar evidencia en un log JSON estructurado, y hace commit exitoso de las otras 49 órdenes válidas del chunk."
+      },
+      {
+        tag: "Spring Batch & PostgreSQL",
+        q: "4. ¿Cómo garantizas la idempotencia si el Job de Spring Batch se ejecuta dos veces sobre el mismo prefijo S3?",
+        a: "Primero, cada ejecución recibe un parámetro único requestedAtEpochMs junto con el s3Prefix para que JobRepository registre la trazabilidad de cada corrida. Segundo, en la capa de persistencia, la columna order_id tiene una restricción UNIQUE en PostgreSQL y PostgresOrderItemWriter implementa semántica de Upsert transaccional: verifica findByOrderId() dentro de la transacción del chunk para actualizar los montos liquidados sin arrojar DataIntegrityViolationException ni duplicar cargos financieros."
+      },
+      {
+        tag: "Seguridad & IAM",
+        q: "5. ¿Cómo aplicaste el Principio de Mínimo Privilegio (PoLP) en los roles IAM de Terraform?",
+        a: "En lugar de compartir un rol genérico con AmazonS3FullAccess, creamos dos roles IAM separados en terraform/modules/serverless-core/iam.tf: (1) order-api-lambda-role tiene permiso exclusivamente para s3:PutObject y s3:PutObjectTagging sobre el ARN del bucket con comodín restringido a /incoming/*, sin permiso de lectura ni borrado. (2) order-event-processor-lambda-role solo posee s3:GetObject y s3:ListBucket sobre ese bucket, sin permiso de escritura."
+      },
+      {
+        tag: "Terraform & FinOps",
+        q: "6. ¿Cómo estructuraste Terraform para que el mismo código sirva en LocalStack gratis y en AWS real sin generar cargos sorpresa por EKS o EC2?",
+        a: "Dividimos la infraestructura en dos módulos: modules/serverless-core (recursos 100% compatibles con LocalStack y cubiertos por AWS Free Tier: Lambda, S3, API Gateway, EventBridge, CloudWatch con retención de 14 días e IAM) y el módulo aws-only (EC2 con IMDSv2 y EKS con Managed Node Group). El módulo aws-only está protegido por la variable booleana enable_paid_resources = false mediante count = var.enable_paid_resources ? 1 : 0, permitiendo validar y ejecutar terraform plan sin aprovisionar el plano de control de EKS ($73 USD/mes)."
+      },
+      {
+        tag: "Spring Boot 3 & Clean Code",
+        q: "7. ¿Por qué no devuelves directamente la entidad ProcessedOrderEntity en el endpoint GET /api/v1/batch/orders y cómo manejas los errores REST?",
+        a: "Exponer entidades JPA directamente en controladores REST acopla el contrato público de la API al esquema de base de datos, puede causar problemas de lazy-loading o fugas de campos internos. Por eso mapeamos cada entidad a un Java 21 Record inmutable (ProcessedOrderDto) dentro de un método de servicio marcado con @Transactional(readOnly = true) (que desactiva el dirty-checking de Hibernate para ahorrar memoria). Para los errores, GlobalExceptionHandler (@RestControllerAdvice) estandariza todas las respuestas de fallo bajo el estándar RFC 7807 (ProblemDetail)."
+      },
+      {
+        tag: "Observabilidad CloudWatch",
+        q: "8. ¿Por qué usar logs estructurados en JSON en vez de texto plano con System.out.println o Logback estándar?",
+        a: "En arquitecturas Serverless y contenedores distribuidos, los logs en texto libre son costosos y lentos de parsear con expresiones regulares. Al emitir cada evento como un objeto JSON de una sola línea (con timestamp, level, service, eventType, correlationId y metadata), CloudWatch Logs Insights y los CloudWatch Metric Filters pueden evaluar expresiones como { $.eventType = \"ORDER_COMPLIANCE_ALERT\" } en tiempo real para disparar alarmas automáticas de cumplimiento financiero."
+      }
+    ];
+
+    // =========================================================================
+    // UI LOGIC
+    // =========================================================================
+    const SLIDE_IDS = ['arch', 'sim', 'diy', 'interview'];
+    let currentSlideIdx = 0;
+    let currentSimStep = 0;
+
+    function switchSlide(slideKey, btnEl) {
+      currentSlideIdx = SLIDE_IDS.indexOf(slideKey);
+      document.querySelectorAll('.slide-section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById('slide-' + slideKey).classList.add('active');
+
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(b => b.classList.remove('active'));
+      if (btnEl) {
+        btnEl.classList.add('active');
+      } else if (tabBtns[currentSlideIdx]) {
+        tabBtns[currentSlideIdx].classList.add('active');
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      if (e.key === 'ArrowRight' && currentSlideIdx < SLIDE_IDS.length - 1) {
+        switchSlide(SLIDE_IDS[currentSlideIdx + 1]);
+      } else if (e.key === 'ArrowLeft' && currentSlideIdx > 0) {
+        switchSlide(SLIDE_IDS[currentSlideIdx - 1]);
+      }
+    });
+
+    function selectComponent(key, btnEl) {
+      const data = ARCH_COMPONENTS[key];
+      if (!data) return;
+
+      document.querySelectorAll('.comp-node').forEach(n => n.classList.remove('selected'));
+      if (btnEl) btnEl.classList.add('selected');
+
+      document.getElementById('comp-title').textContent = data.title;
+      document.getElementById('comp-file').textContent = data.file;
+      document.getElementById('comp-role').textContent = data.role;
+      document.getElementById('comp-failure').textContent = data.failure;
+      document.getElementById('comp-code-block').textContent = data.code;
+    }
+
+    function renderSimulator() {
+      const track = document.getElementById('pipeline-track-container');
+      track.innerHTML = '';
+
+      SIM_STAGES.forEach((st, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'pipeline-step-pill' + (idx === currentSimStep ? ' current' : (idx < currentSimStep ? ' done' : ''));
+        btn.onclick = () => { currentSimStep = idx; renderSimulator(); };
+        btn.innerHTML = `<span class="step-num">PASO ${idx + 1}</span><strong>${st.shortTitle}</strong>`;
+        track.appendChild(btn);
+      });
+
+      const stage = SIM_STAGES[currentSimStep];
+      const scenario = document.getElementById('scenario-select').value;
+
+      document.getElementById('sim-step-counter').textContent = `Paso ${currentSimStep + 1} de ${SIM_STAGES.length}`;
+      document.getElementById('prev-step-btn').disabled = currentSimStep === 0;
+      document.getElementById('next-step-btn').disabled = currentSimStep === SIM_STAGES.length - 1;
+
+      document.getElementById('sim-stage-title').textContent = stage.title;
+      document.getElementById('sim-stage-desc').textContent = stage.desc;
+
+      const ul = document.getElementById('sim-stage-bullets');
+      ul.innerHTML = stage.bullets.map(b => `<li>${b}</li>`).join('');
+
+      document.getElementById('sim-payload-code').textContent = stage.payloads[scenario];
+    }
+
+    function moveSimStep(delta) {
+      const next = currentSimStep + delta;
+      if (next >= 0 && next < SIM_STAGES.length) {
+        currentSimStep = next;
+        renderSimulator();
+      }
+    }
+
+    function changeScenario() {
+      renderSimulator();
+    }
+
+    // DIY Checklist with localStorage persistence
+    const STORAGE_KEY = 'sbop_diy_progress_v1';
+
+    function loadChecklistState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveChecklistState(state) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {}
+    }
+
+    function renderChecklist() {
+      const state = loadChecklistState();
+      const container = document.getElementById('diy-checklist-container');
+      container.innerHTML = '';
+
+      let completedCount = 0;
+
+      DIY_STEPS.forEach((step, idx) => {
+        const isChecked = Boolean(state[step.id]);
+        if (isChecked) completedCount++;
+
+        const card = document.createElement('div');
+        card.className = 'check-item' + (isChecked ? ' completed' : '');
+        const codeId = `diy-code-${idx}`;
+
+        card.innerHTML = `
+          <label class="check-item-header">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCheckStep('${step.id}', this.checked)" />
+            <div class="check-title-wrap">
+              <h3>${step.title}</h3>
+              <p>${step.why}</p>
+            </div>
+          </label>
+          <div class="check-item-body">
+            <div class="code-panel">
+              <div class="code-panel-bar">
+                <span>Comando listo para ejecutar</span>
+                <button class="copy-btn" onclick="copyTextFromElement('${codeId}', this)">Copiar comando</button>
+              </div>
+              <pre><code id="${codeId}"></code></pre>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+        document.getElementById(codeId).textContent = step.cmd;
+      });
+
+      const pct = Math.round((completedCount / DIY_STEPS.length) * 100);
+      document.getElementById('diy-progress-text').textContent = `${completedCount} de ${DIY_STEPS.length} pasos completados (${pct}%)`;
+      document.getElementById('diy-progress-bar').style.width = `${pct}%`;
+    }
+
+    function toggleCheckStep(id, checked) {
+      const state = loadChecklistState();
+      state[id] = checked;
+      saveChecklistState(state);
+      renderChecklist();
+    }
+
+    function resetChecklist() {
+      saveChecklistState({});
+      renderChecklist();
+    }
+
+    function renderInterviewCards() {
+      const container = document.getElementById('qa-cards-container');
+      container.innerHTML = '';
+
+      INTERVIEW_QUESTIONS.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'qa-card';
+        card.innerHTML = `
+          <div>
+            <div class="qa-meta">
+              <span class="comp-tag tag-iac">${item.tag}</span>
+            </div>
+            <p class="qa-question" style="margin-top: 0.65rem;">${item.q}</p>
+          </div>
+          <div class="qa-answer">${item.a}</div>
+          <button class="qa-toggle-btn" onclick="toggleQaCard(this)">Ver respuesta modelo</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleQaCard(btn) {
+      const card = btn.closest('.qa-card');
+      const isOpen = card.classList.toggle('open');
+      btn.textContent = isOpen ? 'Ocultar respuesta' : 'Ver respuesta modelo';
+    }
+
+    function copyTextFromElement(elementId, btn) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = '¡Copiado!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    }
+
+    // Initialize all views on load
+    selectComponent('apigw', document.querySelector('.comp-node'));
+    renderSimulator();
+    renderChecklist();
+    renderInterviewCards();
+  </script>
+</body>
+</html>
